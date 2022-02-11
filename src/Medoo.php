@@ -892,15 +892,18 @@ class Medoo
                             break;
 
                         case 'array':
-                            $placeholders = [];
-
-                            foreach ($value as $index => $item) {
-                                $stackKey = $mapKey . $index . '_i';
-                                $placeholders[] = $stackKey;
-                                $map[$stackKey] = $this->typeMap($item, gettype($item));
+                            $firstType = gettype(reset($value));
+                    
+                            foreach ($value as &$item) {
+                                if ('integer' === $firstType || 'boolean' === $firstType) {
+                                    $item = intval($item);
+                                } else {
+                                    $item = $this->quote(strval($item));
+                                }
+                                unset($item);
                             }
 
-                            $stack[] = $column . ' NOT IN (' . implode(', ', $placeholders) . ')';
+                            $stack[] = $column . ' NOT IN (' . implode(',', $value) . ')';
                             break;
 
                         case 'object':
@@ -979,16 +982,18 @@ class Medoo
                     break;
 
                 case 'array':
-                    $placeholders = [];
-
-                    foreach ($value as $index => $item) {
-                        $stackKey = $mapKey . $index . '_i';
-
-                        $placeholders[] = $stackKey;
-                        $map[$stackKey] = $this->typeMap($item, gettype($item));
+                    $firstType = gettype(reset($value));
+                    
+                    foreach ($value as &$item) {
+                        if ('integer' === $firstType || 'boolean' === $firstType) {
+                            $item = intval($item);
+                        } else {
+                            $item = $this->quote(strval($item));
+                        }
+                        unset($item);
                     }
-
-                    $stack[] = $column . ' IN (' . implode(', ', $placeholders) . ')';
+                    
+                    $stack[] = $column . ' IN (' . implode(',', $value) . ')';
                     break;
 
                 case 'object':
@@ -2231,3 +2236,4 @@ class Medoo
         return $output;
     }
 }
+
